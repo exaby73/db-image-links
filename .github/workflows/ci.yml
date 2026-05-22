@@ -43,7 +43,7 @@ jobs:
       - name: Lint
         run: pnpm lint
 
-      - name: Biome check
+      - name: Project check
         run: pnpm check
 
       - name: Rust tests
