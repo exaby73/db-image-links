@@ -76,11 +76,11 @@ Use **Disconnect Dropbox** to remove stored credentials from the computer.
 
 ## Installing On macOS
 
-The macOS build is unsigned.
+The macOS build is ad-hoc signed but not notarized by Apple.
 
 If macOS says it cannot verify the app:
 
-1. Download the macOS artifact from GitHub Actions or from the GitHub Release for the version you want.
+1. Download the macOS `.zip` artifact from GitHub Actions or from the GitHub Release for the version you want.
 2. Unzip it if the browser did not do that automatically.
 3. Drag **Dropbox Image Links.app** into Applications.
 4. Right-click the app and choose **Open**.
@@ -92,6 +92,14 @@ If the button is not available:
 2. Go to **System Settings > Privacy & Security**.
 3. Find the blocked app message.
 4. Click **Open Anyway**.
+
+If macOS says the app is damaged, remove the download quarantine flag after moving the app to Applications:
+
+```sh
+xattr -dr com.apple.quarantine "/Applications/Dropbox Image Links.app"
+```
+
+Then right-click **Dropbox Image Links.app** and choose **Open** once.
 
 ## Installing On Windows
 

@@ -51,18 +51,33 @@ jobs:
       - name: Build Tauri app
         run: pnpm tauri:build
 
-      - name: Archive macOS app for release
-        if: startsWith(github.ref, 'refs/tags/v') && runner.os == 'macOS'
+      - name: Archive macOS app
+        if: runner.os == 'macOS'
         run: |
+          codesign --force --deep --sign - \
+            "apps/desktop/src-tauri/target/release/bundle/macos/Dropbox Image Links.app"
+          codesign --verify --deep --strict --verbose=2 \
+            "apps/desktop/src-tauri/target/release/bundle/macos/Dropbox Image Links.app"
           ditto -c -k --sequesterRsrc --keepParent \
             "apps/desktop/src-tauri/target/release/bundle/macos/Dropbox Image Links.app" \
             "apps/desktop/src-tauri/target/release/bundle/macos/Dropbox Image Links_${{ github.ref_name }}_macos.zip"
 
-      - name: Upload installer artifacts
+      - name: Upload macOS app artifact
+        if: runner.os == 'macOS'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact-name }}
-          path: apps/desktop/src-tauri/target/release/bundle
+          path: apps/desktop/src-tauri/target/release/bundle/macos/*.zip
+          if-no-files-found: error
+
+      - name: Upload Windows installer artifacts
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: |
+            apps/desktop/src-tauri/target/release/bundle/**/*.msi
+            apps/desktop/src-tauri/target/release/bundle/**/*.exe
           if-no-files-found: error
 
       - name: Attach installers to GitHub Release
