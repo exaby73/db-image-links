@@ -1,0 +1,20 @@
+{
+  "name": "db-image-links",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.2.2",
+  "scripts": {
+    "dev": "pnpm --filter @db-image-links/desktop dev",
+    "build": "pnpm --filter @db-image-links/desktop build",
+    "typecheck": "pnpm --filter @db-image-links/desktop typecheck",
+    "lint": "pnpm --filter @db-image-links/desktop lint",
+    "format": "biome format --write .",
+    "check": "biome check . && cargo check --manifest-path apps/desktop/src-tauri/Cargo.toml",
+    "test": "pnpm --filter @db-image-links/desktop test",
+    "tauri": "pnpm --filter @db-image-links/desktop tauri",
+    "tauri:build": "pnpm --filter @db-image-links/desktop tauri build"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.3.8"
+  }
+}
