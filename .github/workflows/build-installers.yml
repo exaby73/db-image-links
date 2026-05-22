@@ -60,7 +60,19 @@ jobs:
             "apps/desktop/src-tauri/target/release/bundle/macos/Dropbox Image Links.app"
           ditto -c -k --sequesterRsrc --keepParent \
             "apps/desktop/src-tauri/target/release/bundle/macos/Dropbox Image Links.app" \
-            "apps/desktop/src-tauri/target/release/bundle/macos/Dropbox Image Links_${{ github.ref_name }}_macos.zip"
+            "apps/desktop/src-tauri/target/release/bundle/macos/Dropbox_Image_Links_${{ github.ref_name }}_macos.zip"
+
+      - name: Normalize Windows installer filename
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Get-ChildItem "apps/desktop/src-tauri/target/release/bundle" -Recurse -Filter "*.msi" |
+            ForEach-Object {
+              $normalizedName = $_.Name.Replace(" ", "_")
+              if ($normalizedName -ne $_.Name) {
+                Rename-Item -LiteralPath $_.FullName -NewName $normalizedName
+              }
+            }
 
       - name: Upload macOS app artifact
         if: runner.os == 'macOS'
@@ -75,16 +87,17 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact-name }}
-          path: |
-            apps/desktop/src-tauri/target/release/bundle/**/*.msi
-            apps/desktop/src-tauri/target/release/bundle/**/*.exe
+          path: apps/desktop/src-tauri/target/release/bundle/**/*.msi
           if-no-files-found: error
 
-      - name: Attach installers to GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Attach macOS app to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v') && runner.os == 'macOS'
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            apps/desktop/src-tauri/target/release/bundle/**/*.msi
-            apps/desktop/src-tauri/target/release/bundle/**/*.exe
-            apps/desktop/src-tauri/target/release/bundle/macos/*.zip
+          files: apps/desktop/src-tauri/target/release/bundle/macos/*.zip
+
+      - name: Attach Windows installer to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v') && runner.os == 'Windows'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: apps/desktop/src-tauri/target/release/bundle/**/*.msi
