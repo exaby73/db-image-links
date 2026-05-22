@@ -48,6 +48,3 @@ jobs:
 
       - name: Rust tests
         run: cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml
-
-      - name: Rust check
-        run: cargo check --manifest-path apps/desktop/src-tauri/Cargo.toml
