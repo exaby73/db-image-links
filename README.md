@@ -103,7 +103,7 @@ Then right-click **Dropbox Image Links.app** and choose **Open** once.
 
 ## Installing On Windows
 
-Download the Windows installer from GitHub Actions or from the GitHub Release for the version you want, then run the `.msi` or `.exe` installer.
+Download the Windows installer from GitHub Actions or from the GitHub Release for the version you want, then run the `.msi` installer.
 
 If Windows SmartScreen warns about an unknown publisher, choose **More info** and then **Run anyway** if the file came from the expected project build.
 

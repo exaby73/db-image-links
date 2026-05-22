@@ -65,10 +65,16 @@ jobs:
       - name: Normalize Windows installer filename
         if: runner.os == 'Windows'
         shell: pwsh
+        env:
+          RELEASE_NAME: ${{ github.ref_name }}
         run: |
+          $releaseName = $env:RELEASE_NAME.Replace(" ", "_")
           Get-ChildItem "apps/desktop/src-tauri/target/release/bundle" -Recurse -Filter "*.msi" |
             ForEach-Object {
               $normalizedName = $_.Name.Replace(" ", "_")
+              if ($normalizedName -match "^(?<prefix>.+?)_[0-9]+\.[0-9]+\.[0-9]+(?<suffix>_.*\.msi)$") {
+                $normalizedName = "$($Matches.prefix)_$releaseName$($Matches.suffix)"
+              }
               if ($normalizedName -ne $_.Name) {
                 Rename-Item -LiteralPath $_.FullName -NewName $normalizedName
               }
