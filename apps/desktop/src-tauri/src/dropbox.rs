@@ -197,7 +197,7 @@ impl DropboxClient {
 
         for file in files {
             let item = file.name.clone();
-            match file.dropbox_path() {
+            match file.dropbox_identifier() {
                 Some(path) => match self.create_or_reuse_shared_link(access_token, &path).await {
                     Ok(link) => links.push(link),
                     Err(error) => failures.push(ProcessFailure {
@@ -209,7 +209,7 @@ impl DropboxClient {
                 None => failures.push(ProcessFailure {
                     sku: sku.clone(),
                     item,
-                    message: "Dropbox did not return an account path for this file.".to_string(),
+                    message: "Dropbox did not return a file path or ID for this file.".to_string(),
                 }),
             }
         }
@@ -333,7 +333,11 @@ impl DropboxClient {
             return self.find_existing_link(access_token, path).await;
         }
 
-        Err(map_error_status(response.status, response.text))
+        Err(map_error_status_for_endpoint(
+            response.status,
+            response.text,
+            CREATE_SHARED_LINK_URL,
+        ))
     }
 
     async fn find_existing_link(
@@ -369,7 +373,11 @@ impl DropboxClient {
     ) -> Result<T, DropboxError> {
         let response = self.post_raw(url, access_token, body).await?;
         if !response.status.is_success() {
-            return Err(map_error_status(response.status, response.text));
+            return Err(map_error_status_for_endpoint(
+                response.status,
+                response.text,
+                url,
+            ));
         }
         Ok(serde_json::from_str(&response.text)?)
     }
@@ -450,15 +458,17 @@ enum Metadata {
 #[derive(Debug, Clone, Deserialize)]
 struct FileEntry {
     name: String,
+    id: Option<String>,
     path_lower: Option<String>,
     path_display: Option<String>,
 }
 
 impl FileEntry {
-    fn dropbox_path(&self) -> Option<String> {
+    fn dropbox_identifier(&self) -> Option<String> {
         self.path_lower
             .clone()
             .or_else(|| self.path_display.clone())
+            .or_else(|| self.id.clone())
     }
 }
 
@@ -534,6 +544,29 @@ fn map_error_status(status: StatusCode, text: String) -> DropboxError {
     DropboxError::Api(extract_error_summary(&text))
 }
 
+fn map_error_status_for_endpoint(status: StatusCode, text: String, url: &str) -> DropboxError {
+    if status == StatusCode::UNAUTHORIZED {
+        return DropboxError::Unauthorized(extract_error_summary(&text));
+    }
+
+    DropboxError::Api(format!(
+        "{} returned {}",
+        endpoint_label(url),
+        extract_error_summary(&text)
+    ))
+}
+
+fn endpoint_label(url: &str) -> &'static str {
+    match url {
+        GET_SHARED_LINK_METADATA_URL => "sharing/get_shared_link_metadata",
+        LIST_FOLDER_URL => "files/list_folder",
+        LIST_FOLDER_CONTINUE_URL => "files/list_folder/continue",
+        CREATE_SHARED_LINK_URL => "sharing/create_shared_link_with_settings",
+        LIST_SHARED_LINKS_URL => "sharing/list_shared_links",
+        _ => "Dropbox API",
+    }
+}
+
 fn extract_error_summary(text: &str) -> String {
     serde_json::from_str::<Value>(text)
         .ok()
@@ -594,6 +627,44 @@ mod tests {
         assert_eq!(
             find_url(&value),
             Some("https://www.dropbox.com/s/file".to_string())
+        );
+    }
+
+    #[test]
+    fn uses_file_id_when_shared_link_metadata_has_no_account_path() {
+        let file = FileEntry {
+            name: "1.jpg".to_string(),
+            id: Some("id:abc123".to_string()),
+            path_lower: None,
+            path_display: None,
+        };
+
+        assert_eq!(file.dropbox_identifier(), Some("id:abc123".to_string()));
+    }
+
+    #[test]
+    fn prefers_account_path_over_file_id() {
+        let file = FileEntry {
+            name: "1.jpg".to_string(),
+            id: Some("id:abc123".to_string()),
+            path_lower: Some("/sku/1.jpg".to_string()),
+            path_display: None,
+        };
+
+        assert_eq!(file.dropbox_identifier(), Some("/sku/1.jpg".to_string()));
+    }
+
+    #[test]
+    fn includes_endpoint_name_in_api_errors() {
+        let error = map_error_status_for_endpoint(
+            StatusCode::FORBIDDEN,
+            r#"{"error_summary":"access_denied/"}"#.to_string(),
+            CREATE_SHARED_LINK_URL,
+        );
+
+        assert_eq!(
+            error.to_string(),
+            "Dropbox rejected the request: sharing/create_shared_link_with_settings returned access_denied/"
         );
     }
 }

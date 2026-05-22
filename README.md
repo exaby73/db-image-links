@@ -13,11 +13,14 @@ SKU,Link 1,Link 2
 
 - A Dropbox account that owns, or has mounted access to, the folders being processed.
 - A Dropbox app key created in the Dropbox App Console.
+- The Dropbox app must be a scoped **Full Dropbox** app. Do not choose **App Folder**; App Folder apps can only act inside their dedicated app folder and cannot create links for arbitrary SKU folders.
 - The Dropbox app must have these scopes enabled:
 
 ```text
-files.metadata.read sharing.read sharing.write
+files.metadata.read sharing.write
 ```
+
+Dropbox automatically selects `sharing.read` when `sharing.write` is enabled.
 
 The app uses Dropbox OAuth PKCE with offline access. It stores the refresh token in the operating system credential store:
 
@@ -58,13 +61,16 @@ Images are sorted by natural filename order, so `1.jpg`, `2.jpg`, and `10.jpg` s
 
 1. Open the Dropbox App Console.
 2. Create a scoped Dropbox API app.
-3. Enable the scopes listed above.
-4. Copy the app key.
-5. Paste the app key into Dropbox Image Links.
-6. Click **Open Dropbox authorization**.
-7. Approve access in Dropbox.
-8. Copy the authorization code Dropbox shows.
-9. Paste the code into the app and click **Finish setup**.
+3. Choose **Full Dropbox** access, not **App Folder**.
+4. Enable the scopes listed above.
+5. Copy the app key.
+6. Paste the app key into Dropbox Image Links.
+7. Click **Open Dropbox authorization**.
+8. Approve access in Dropbox.
+9. Copy the authorization code Dropbox shows.
+10. Paste the code into the app and click **Finish setup**.
+
+If you already created an App Folder app, create a new Full Dropbox app and use the new app key. Dropbox access type is selected when the app is created.
 
 Use **Disconnect Dropbox** to remove stored credentials from the computer.
 

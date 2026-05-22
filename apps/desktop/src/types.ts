@@ -27,3 +27,19 @@ export type ProcessResponse = {
   failures: ProcessFailure[];
   csv: string;
 };
+
+export type BusyState = "auth" | "run" | "save" | null;
+
+export type Notice = {
+  kind: "info" | "success" | "error";
+  text: string;
+};
+
+export type DevLogEntry = {
+  id: string;
+  timestamp: string;
+  level: "info" | "success" | "error";
+  source: "ui" | "tauri";
+  message: string;
+  details?: unknown;
+};
