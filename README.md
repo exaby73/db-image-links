@@ -74,7 +74,7 @@ The macOS build is unsigned.
 
 If macOS says it cannot verify the app:
 
-1. Download the macOS artifact from GitHub Actions or release assets.
+1. Download the macOS artifact from GitHub Actions or from the GitHub Release for the version you want.
 2. Unzip it if the browser did not do that automatically.
 3. Drag **Dropbox Image Links.app** into Applications.
 4. Right-click the app and choose **Open**.
@@ -89,11 +89,15 @@ If the button is not available:
 
 ## Installing On Windows
 
-Download the Windows installer from the GitHub Actions build artifacts or release assets, then run the `.msi` or `.exe` installer.
+Download the Windows installer from GitHub Actions or from the GitHub Release for the version you want, then run the `.msi` or `.exe` installer.
 
 If Windows SmartScreen warns about an unknown publisher, choose **More info** and then **Run anyway** if the file came from the expected project build.
 
+Windows users do not need WSL to install or use the app.
+
 ## Development
+
+### Tooling
 
 Tools are pinned with `asdf`:
 
@@ -102,6 +106,24 @@ nodejs 24.16.0
 pnpm 11.2.2
 rust 1.95.0
 ```
+
+On macOS:
+
+```sh
+asdf install
+```
+
+Tauri also needs Apple command line build tools:
+
+```sh
+xcode-select --install
+```
+
+On Windows, `asdf` does not support PowerShell or Command Prompt. Use WSL for normal repository development commands, or install the pinned Node.js, pnpm, and Rust versions manually for native Windows builds.
+
+Native Windows installer builds need the Microsoft C++ Build Tools and WebView2 runtime. The GitHub Actions Windows runner already has the required build environment.
+
+### Commands
 
 Install dependencies:
 
@@ -112,7 +134,13 @@ pnpm i
 Run the desktop app in development:
 
 ```sh
-pnpm tauri dev
+pnpm dev
+```
+
+Run only the Vite web shell:
+
+```sh
+pnpm web:dev
 ```
 
 Build the frontend:
@@ -151,7 +179,8 @@ Per `AGENTS.md`, run pnpm workspace tests and any commands that may touch extern
 
 The repository includes:
 
-- A checks workflow for TypeScript, ESLint, Rust tests, and Rust checks.
-- A build workflow for installable macOS and Windows Tauri artifacts.
+- A checks workflow for TypeScript, Biome, Rust checks, and Rust tests.
+- A build workflow for macOS and Windows Tauri artifacts.
+- Tag builds like `v1.0.0` attach generated installers to the GitHub Release.
 
 Commit messages and PR titles should follow the Git Committer skill rules.

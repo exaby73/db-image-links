@@ -4,7 +4,8 @@
   "private": true,
   "packageManager": "pnpm@11.2.2",
   "scripts": {
-    "dev": "pnpm --filter @db-image-links/desktop dev",
+    "dev": "pnpm --filter @db-image-links/desktop tauri dev",
+    "web:dev": "pnpm --filter @db-image-links/desktop dev",
     "build": "pnpm --filter @db-image-links/desktop build",
     "typecheck": "pnpm --filter @db-image-links/desktop typecheck",
     "lint": "pnpm --filter @db-image-links/desktop lint",
